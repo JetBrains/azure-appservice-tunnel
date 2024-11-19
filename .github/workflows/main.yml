@@ -1,0 +1,53 @@
+name: Main
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  main:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    
+    - name: Fetch Sources
+      uses: actions/checkout@v4
+
+    - name: dotnet.cmd cache
+      uses: actions/cache@v4
+      with:
+        path: '~/.local/share/JetBrains/dotnet-cmd'
+        key: ${{ runner.os }}-dotnet-${{ hashFiles('dotnet.cmd') }}
+
+    - name: Install dependencies
+      working-directory: src
+      run: ../dotnet.cmd restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      working-directory: src
+      
+    - name: Test
+      run: ../dotnet.cmd test --configuration Release --no-build
+      working-directory: src
+
+    - name: Publish
+      run: ../../dotnet.cmd publish --framework net472 --configuration Release --no-build
+      working-directory: src/Azure.AppService.Tunnel
+
+    - name: Upload the packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: nupkg
+        path: |
+          src/Azure.AppService.Tunnel/bin/Release/*.nupkg
+
+    - name: Upload the executables
+      uses: actions/upload-artifact@v4
+      with:
+        name: Azure.AppService.Tunnel
+        path: |
+          src/Azure.AppService.Tunnel/bin/Release/*/publish/**/*

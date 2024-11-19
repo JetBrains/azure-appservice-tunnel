@@ -1,0 +1,34 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Read version from Git ref
+        id: version
+        shell: pwsh
+        run: echo "version=$(if ($env:GITHUB_REF.StartsWith('refs/tags/v')) { $env:GITHUB_REF -replace '^refs/tags/v', '' } else { 'next' })" >> $env:GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read the changelog
+        uses: ForNeVeR/ChangelogAutomation.action@v1
+        with:
+          input: ./CHANGELOG.md
+          output: ./changelog-section.md
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        name: Create a release
+        shell: pwsh
+        run: gh release create --title $env:TITLE --notes-file $env:RELEASE_NOTES_FILE $env:VERSION_TAG
+        env:
+          GH_TOKEN: ${{ secrets.TOKEN }}
+          TITLE: 'JetBrains.Azure.AppService.Tunnel v${{ steps.version.outputs.version }}'
+          RELEASE_NOTES_FILE: './changelog-section.md'
+          VERSION_TAG: 'v${{ steps.version.outputs.version }}'
