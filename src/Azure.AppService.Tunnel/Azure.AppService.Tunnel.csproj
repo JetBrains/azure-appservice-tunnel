@@ -5,28 +5,6 @@
         <AssemblyName>JetBrains.Azure.AppService.Tunnel</AssemblyName>
         <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    </PropertyGroup>
-
-    <PropertyGroup Label="NuGet">
-        <Version>1.0.0</Version>
-        <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageId>JetBrains.Azure.AppService.Tunnel</PackageId>
-        <PackageProjectUrl>https://github.com/JetBrains/azure-appservice-tunnel</PackageProjectUrl>
-        <RepositoryUrl>https://github.com/JetBrains/azure-appservice-tunnel</RepositoryUrl>
-        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-        <RepositoryType>git</RepositoryType>
-        <Authors>JetBrains</Authors>
-        <Copyright>Copyright © JetBrains $([System.DateTime]::UtcNow.Year)</Copyright>
-        <PackageTags>azure appservice tunnel</PackageTags>
-        <Description>Provides an ability to open ssh/sftp channels to Azure app services running on Windows</Description>
-        <IncludeSymbols>false</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <GenerateDocumentationFile>false</GenerateDocumentationFile>
-        <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <EmbedUntrackedSources>false</EmbedUntrackedSources>
-        <!--<PackageIcon>PackageIcon.png</PackageIcon>-->
-        <PackageType>AzureSiteExtension</PackageType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -40,20 +18,21 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="Logs.ashx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Tunnel.ashx">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="applicationHost.xdt">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+      <None Update="Logs.ashx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Tunnel.ashx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="applicationHost.xdt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
-    <ItemGroup>
+   <ItemGroup>
         <PackageReference Include="ChangelogAutomation.MSBuild" Version="2.0.0" PrivateAssets="All" />
     </ItemGroup>
+
     <PropertyGroup>
         <ChangelogFilePath>..\..\CHANGELOG.md</ChangelogFilePath>
     </PropertyGroup>
