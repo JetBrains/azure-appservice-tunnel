@@ -9,7 +9,7 @@ namespace JetBrains.Azure.AppService.Tunnel.Agent;
 
 internal class DebuggerAgent
 {
-    private const string Version = "1_0_1";
+    private const string Version = "20250114.43.0";
     private const string Name = $"jetbrains_debugger_agent_{Version}.exe";
     private static readonly string Path = $@"{Kudu.ThisExtension.GetFolder()}\bin\{Name}";
     private const string Url = $"https://download.jetbrains.com/rider/ssh-remote-debugging/windows-x64/{Name}";
