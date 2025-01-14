@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <RootNamespace>JetBrains.Azure.AppService.Tunnel</RootNamespace>
+        <AssemblyName>JetBrains.Azure.AppService.Tunnel</AssemblyName>
+        <LangVersion>12</LangVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Lifetimes" Version="2024.3.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="System.IO.Compression"/>
+        <Reference Include="System.Net.Http"/>
+        <Reference Include="System.Web"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Logs.ashx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Tunnel.ashx">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="applicationHost.xdt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+   <ItemGroup>
+        <PackageReference Include="ChangelogAutomation.MSBuild" Version="2.0.0" PrivateAssets="All" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <ChangelogFilePath>..\..\CHANGELOG.md</ChangelogFilePath>
+    </PropertyGroup>
+</Project>
