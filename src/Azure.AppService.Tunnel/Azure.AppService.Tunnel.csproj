@@ -28,12 +28,4 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
-
-   <ItemGroup>
-        <PackageReference Include="ChangelogAutomation.MSBuild" Version="2.0.0" PrivateAssets="All" />
-    </ItemGroup>
-
-    <PropertyGroup>
-        <ChangelogFilePath>..\..\CHANGELOG.md</ChangelogFilePath>
-    </PropertyGroup>
 </Project>
