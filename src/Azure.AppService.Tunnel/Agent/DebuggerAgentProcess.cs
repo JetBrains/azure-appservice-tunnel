@@ -2,11 +2,13 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using JetBrains.Diagnostics;
 
 namespace JetBrains.Azure.AppService.Tunnel.Agent;
 
 internal class DebuggerAgentProcess
 {
+    private readonly ILog _logger = Log.GetLog<DebuggerAgentProcess>();
     private readonly Process _process;
     private readonly TaskCompletionSource<int> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private DebuggerAgentProcess(string path, string login, string password, int port)
@@ -19,6 +21,7 @@ internal class DebuggerAgentProcess
                 CreateNoWindow = true,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 Arguments = $"-login {login} -password {password} -port {port}"
             },
             EnableRaisingEvents = true
@@ -42,6 +45,9 @@ internal class DebuggerAgentProcess
         _process.Start();
         
         Port = await ReadPortNumber(_process);
+        
+        Task.Run(() => WriteOutputToLogger(_process.StandardOutput, _logger.Info));
+        Task.Run(() => WriteOutputToLogger(_process.StandardError, _logger.Error));
     }
 
     public Task<int> WaitForExit()
@@ -70,5 +76,20 @@ internal class DebuggerAgentProcess
         }
 
         return null;
+    }
+
+    private async Task WriteOutputToLogger(StreamReader stream, Action<string> logAction)
+    {
+        try
+        {
+            while (await stream.ReadLineAsync() is { } line)
+            {
+                logAction(line);
+            }
+        }
+        catch (Exception exception)
+        {
+            _logger.Error(exception);
+        }
     }
 }
