@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Azure.AppService.Tunnel.IO;
@@ -11,7 +12,7 @@ internal class DebuggerAgent
 {
     private const string Version = "20250114.43.0";
     private const string Name = $"jetbrains_debugger_agent_{Version}.exe";
-    private static readonly string Path = $@"{Kudu.ThisExtension.GetFolder()}\bin\{Name}";
+    private static readonly string PathToExe = $@"{Kudu.GetJetBrainsFolder()}\DebuggerAgent\{Name}";
     private const string Url = $"https://download.jetbrains.com/rider/ssh-remote-debugging/windows-x64/{Name}";
 
     private readonly ILog _logger = Log.GetLog<DebuggerAgent>();
@@ -37,7 +38,7 @@ internal class DebuggerAgent
     private Task<DebuggerAgentProcess> StartProcess(string login, string password)
     {
         _logger.Info("Starting debugger agent");
-        return DebuggerAgentProcess.Start(Path, login, password);
+        return DebuggerAgentProcess.Start(PathToExe, login, password);
     }
     
     private async Task DownloadIfNeeded()
@@ -51,11 +52,11 @@ internal class DebuggerAgent
     
     private static bool IsDownloaded()
     {
-        return File.Exists(Path);
+        return File.Exists(PathToExe);
     }
 
     private static Task Download()
     {
-        return FileDownloader.Download(Url, Path);
+        return FileDownloader.Download(Url, PathToExe);
     }
 }

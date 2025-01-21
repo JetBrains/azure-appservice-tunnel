@@ -7,11 +7,17 @@ internal static class Kudu
 {
     private const string LogFiles = "LogFiles";
     private const string SiteExtensions = "SiteExtensions";
+    private const string JetBrains = "JetBrains";
     public static KuduSiteExtension ThisExtension { get; } = new("JetBrains.Azure.AppService.Tunnel");
     
     public static string GetLogFilesFolder()
     {
         return Path.Combine(GetHomePath(), LogFiles);
+    }
+    
+    public static string GetJetBrainsFolder()
+    {
+        return Path.Combine(GetHomePath(), JetBrains);
     }
 
     public static string GetSiteExtensionsFolder()

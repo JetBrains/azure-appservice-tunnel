@@ -9,6 +9,8 @@ internal static class FileDownloader
 {
     public static async Task Download(string url, string path)
     {
+        CreateAllDirectoriesInPath(path);
+        
         using var fileStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
         await BeginDownloading(url, async bytes =>
         {
@@ -29,5 +31,12 @@ internal static class FileDownloader
             length = await stream.ReadAsync(buffer, 0, buffer.Length);
             if (length > 0) await onPartDownloaded(new ArraySegment<byte>(buffer, 0, length));
         } while (length > 0);
+    }
+    
+    private static void CreateAllDirectoriesInPath(string path)
+    {
+        var directory = Path.GetDirectoryName(path);
+        if (directory is null) throw new ArgumentException("Path to file should not be null");
+        Directory.CreateDirectory(directory);
     }
 }
