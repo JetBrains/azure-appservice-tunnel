@@ -1,62 +1,27 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using JetBrains.Azure.AppService.Tunnel.IO;
+﻿using System.Threading.Tasks;
 using JetBrains.Azure.AppService.Tunnel.SiteManagement;
 using JetBrains.Diagnostics;
+using JetBrains.Lifetimes;
 
 namespace JetBrains.Azure.AppService.Tunnel.Agent;
 
 internal class DebuggerAgent
 {
-    private const string Version = "20250114.43.0";
+    private const string Version = "20250121.44.0";
     private const string Name = $"jetbrains_debugger_agent_{Version}.exe";
     private static readonly string PathToExe = $@"{Kudu.GetJetBrainsFolder()}\DebuggerAgent\{Name}";
-    private const string Url = $"https://download.jetbrains.com/rider/ssh-remote-debugging/windows-x64/{Name}";
-
+    
     private readonly ILog _logger = Log.GetLog<DebuggerAgent>();
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private DebuggerAgentProcess? _process;
 
-    public async Task<DebuggerAgentProcess> Start(string login, string password)
+    public async Task<DebuggerAgentProcess> Start(Lifetime lifetime, string login, string password)
     {
-        await _semaphore.WaitAsync();
-        try
-        {
-            await DownloadIfNeeded();
-            
-            if (_process is { HasExited: false }) return _process;
-            return _process = await StartProcess(login, password);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        await DebuggerAgentDownloader.DownloadIfNeeded(PathToExe, Name);
+        return await StartProcess(lifetime, login, password);
     }
 
-    private Task<DebuggerAgentProcess> StartProcess(string login, string password)
+    private Task<DebuggerAgentProcess> StartProcess(Lifetime lifetime, string login, string password)
     {
         _logger.Info("Starting debugger agent");
-        return DebuggerAgentProcess.Start(PathToExe, login, password);
-    }
-    
-    private async Task DownloadIfNeeded()
-    {
-        if (!IsDownloaded())
-        {
-            _logger.Info("Begin downloading debugger agent");
-            await Download();
-        }
-    }
-    
-    private static bool IsDownloaded()
-    {
-        return File.Exists(PathToExe);
-    }
-
-    private static Task Download()
-    {
-        return FileDownloader.Download(Url, PathToExe);
+        return DebuggerAgentProcess.Start(lifetime, PathToExe, login, password);
     }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Diagnostics;
+using JetBrains.Lifetimes;
 
 namespace JetBrains.Azure.AppService.Tunnel.Agent;
 
@@ -11,6 +12,7 @@ internal class DebuggerAgentProcess
     private readonly ILog _logger = Log.GetLog<DebuggerAgentProcess>();
     private readonly Process _process;
     private readonly TaskCompletionSource<int> _taskCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
     private DebuggerAgentProcess(string path, string login, string password, int port)
     {
         _process = new Process
@@ -29,39 +31,48 @@ internal class DebuggerAgentProcess
     }
 
     public int Port { get; private set; }
-    public bool HasExited => _process.HasExited;
-    
-    public static async Task<DebuggerAgentProcess> Start(string path, string login, string password, int port = 0)
+
+    public static async Task<DebuggerAgentProcess> Start(
+        Lifetime lifetime,
+        string path,
+        string login,
+        string password,
+        int port = 0)
     {
         var debuggerAgentProcess = new DebuggerAgentProcess(path, login, password, port);
-        await debuggerAgentProcess.Start();
+        await debuggerAgentProcess.Start(lifetime);
 
         return debuggerAgentProcess;
     }
 
-    private async Task Start()
+    private async Task Start(Lifetime lifetime)
     {
+        lifetime.OnTermination(() =>
+        {
+            if (!_process.HasExited) _process.Kill();
+        });
+        
         _process.Exited += (_, _) => _taskCompletionSource.SetResult(_process.ExitCode);
         _process.Start();
-        
+
         Port = await ReadPortNumber(_process);
-        
-        Task.Run(() => WriteOutputToLogger(_process.StandardOutput, _logger.Info));
-        Task.Run(() => WriteOutputToLogger(_process.StandardError, _logger.Error));
+
+        Task.Run(() => WriteOutputToLogger(lifetime, _process.StandardOutput, _logger.Info), lifetime);
+        Task.Run(() => WriteOutputToLogger(lifetime, _process.StandardError, _logger.Error), lifetime);
     }
 
     public Task<int> WaitForExit()
     {
         return _taskCompletionSource.Task;
     }
-    
+
     private static async Task<int> ReadPortNumber(Process process)
     {
         var output = process.StandardOutput;
 
         var port = await ExtractKeyWord(output, "Port");
         if (port is null) throw new InvalidOperationException("Port is null");
-        
+
         return Convert.ToInt32(port);
     }
 
@@ -78,11 +89,11 @@ internal class DebuggerAgentProcess
         return null;
     }
 
-    private async Task WriteOutputToLogger(StreamReader stream, Action<string> logAction)
+    private async Task WriteOutputToLogger(Lifetime lifetime, StreamReader stream, Action<string> logAction)
     {
         try
         {
-            while (await stream.ReadLineAsync() is { } line)
+            while (await stream.ReadLineAsync() is { } line && lifetime.IsAlive)
             {
                 logAction(line);
             }

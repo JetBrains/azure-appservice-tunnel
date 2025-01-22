@@ -16,9 +16,8 @@ internal class SshOverWebSocketsTunnel
     private readonly LifetimeDefinition _lifetimeDefinition = new();
     private readonly ClientSocketConnection _socketConnection;
     private readonly WebSocketConnection _webSocketConnection; 
-    
-    private static readonly ILog Logger = Log.GetLog<SshOverWebSocketsTunnel>();
-    private static readonly DebuggerAgent DebuggerAgent = new();
+    private readonly DebuggerAgent _debuggerAgent = new();
+    private readonly ILog _logger = Log.GetLog<SshOverWebSocketsTunnel>();
     
     private Lifetime Lifetime => _lifetimeDefinition.Lifetime;
     
@@ -59,7 +58,7 @@ internal class SshOverWebSocketsTunnel
         }
         catch (Exception exception)
         {
-            Logger.Error(exception);
+            _logger.Error(exception);
             Terminate(WebSocketCloseStatus.InternalServerError, "Unknown error occured");
         }
     }
@@ -68,13 +67,13 @@ internal class SshOverWebSocketsTunnel
     {
         var login = _context.Headers["Agent-username"];
         var password = _context.Headers["Agent-password"];
-        return DebuggerAgent.Start(login, password);
+        return _debuggerAgent.Start(Lifetime, login, password);
     }
     
     private void Terminate(string reason)
     {
         _lifetimeDefinition.Terminate();
-        Logger.Info($"Terminating tunnel, reason: {reason}");
+        _logger.Info($"Terminating tunnel, reason: {reason}");
     }
 
     private void Terminate(WebSocketCloseStatus closeStatus, string reason)
